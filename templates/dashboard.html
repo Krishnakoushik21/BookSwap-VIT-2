@@ -1,0 +1,207 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - BookSwap VIT{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-sky-50 to-white dark:from-navy-deep dark:to-navy-medium py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white dark:bg-navy-light rounded-2xl p-8 shadow-lg mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-20 h-20 bg-gradient-to-br from-royal to-blue-deep rounded-full flex items-center justify-center mr-6">
+                        <span class="text-white font-bold text-2xl">{{ session.user_name[0].upper() }}</span>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ session.user_name }}</h1>
+                        <p class="text-gray-600 dark:text-gray-300">VIT Student</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ session.user_email }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="flex space-x-4">
+                        <a href="/add_book" class="bg-royal text-white px-6 py-3 rounded-lg hover:bg-blue-deep transition-colors font-semibold">
+                            + List New Book
+                        </a>
+                        <a href="/browse" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                            Browse Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-navy-light rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Books Listed</h3>
+                <p class="text-3xl font-bold text-royal">{{ user_books|length }}</p>
+            </div>
+            <div class="bg-white dark:bg-navy-light rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Requests Sent</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ requests|length }}</p>
+            </div>
+            <div class="bg-white dark:bg-navy-light rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Incoming Requests</h3>
+                <p class="text-3xl font-bold text-green-600">{{ incoming_requests|length }}</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white dark:bg-navy-light rounded-2xl shadow-lg">
+            <div class="border-b border-gray-200 dark:border-navy-medium">
+                <nav class="-mb-px flex space-x-8 px-8" aria-label="Tabs">
+                    <button class="tab-btn active border-b-2 border-royal text-royal py-4 px-1 text-sm font-medium" data-tab="listings">
+                        My Listings
+                    </button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 py-4 px-1 text-sm font-medium" data-tab="requests">
+                        My Requests
+                    </button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 py-4 px-1 text-sm font-medium" data-tab="incoming">
+                        Incoming Requests
+                    </button>
+                </nav>
+            </div>
+
+            <!-- My Listings Tab -->
+            <div id="listings-tab" class="tab-content p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">My Book Listings</h2>
+                    <a href="/add_book" class="bg-royal text-white px-4 py-2 rounded-lg hover:bg-blue-deep transition-colors">
+                        + List New Book/Note
+                    </a>
+                </div>
+                
+                {% if user_books %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for book in user_books %}
+                            <div class="bg-gray-50 dark:bg-navy-medium rounded-xl p-6 border border-gray-200 dark:border-navy-light">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ book.title }}</h3>
+                                <p class="text-gray-600 dark:text-gray-300 mb-2">by {{ book.author }}</p>
+                                <div class="space-y-1 mb-4">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Semester: {{ book.semester }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Branch: {{ book.branch }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Condition: {{ book.condition }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Type: {{ book.book_type }}</p>
+                                </div>
+                                <span class="inline-block bg-{% if book.is_available %}green{% else %}red{% endif %}-100 text-{% if book.is_available %}green{% else %}red{% endif %}-800 text-xs px-2 py-1 rounded-full">
+                                    {% if book.is_available %}Available{% else %}Not Available{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <p class="text-gray-500 dark:text-gray-400 text-lg">You haven't listed any books or notes yet.</p>
+                        <a href="/add_book" class="mt-4 inline-block bg-royal text-white px-6 py-3 rounded-lg hover:bg-blue-deep transition-colors">
+                            List Your First Book
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- My Requests Tab -->
+            <div id="requests-tab" class="tab-content p-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">My Book Requests</h2>
+                
+                {% if requests %}
+                    <div class="space-y-4">
+                        {% for request in requests %}
+                            <div class="bg-gray-50 dark:bg-navy-medium rounded-xl p-6 border border-gray-200 dark:border-navy-light">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ request.title }}</h3>
+                                        <p class="text-gray-600 dark:text-gray-300">by {{ request.author }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Owner: {{ request.owner_name }}</p>
+                                        {% if request.message %}
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Message: {{ request.message }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-800 text-xs px-2 py-1 rounded-full">
+                                        {{ request.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 dark:text-gray-400 text-lg">You haven't made any book requests yet.</p>
+                        <a href="/browse" class="mt-4 inline-block bg-royal text-white px-6 py-3 rounded-lg hover:bg-blue-deep transition-colors">
+                            Browse Available Books
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Incoming Requests Tab -->
+            <div id="incoming-tab" class="tab-content p-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Incoming Book Requests</h2>
+                
+                {% if incoming_requests %}
+                    <div class="space-y-4">
+                        {% for request in incoming_requests %}
+                            <div class="bg-gray-50 dark:bg-navy-medium rounded-xl p-6 border border-gray-200 dark:border-navy-light">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ request.title }}</h3>
+                                        <p class="text-gray-600 dark:text-gray-300">by {{ request.author }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Requested by: {{ request.requester_name }}</p>
+                                        {% if request.message %}
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Message: {{ request.message }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex flex-col space-y-2">
+                                        <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-800 text-xs px-2 py-1 rounded-full">
+                                            {{ request.status.title() }}
+                                        </span>
+                                        {% if request.status == 'pending' %}
+                                            <div class="flex space-x-2">
+                                                <button class="bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition-colors">Accept</button>
+                                                <button class="bg-red-500 text-white text-xs px-3 py-1 rounded hover:bg-red-600 transition-colors">Decline</button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 dark:text-gray-400 text-lg">No one has requested your books yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab functionality
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            
+            // Remove active classes
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active', 'border-royal', 'text-royal');
+                b.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Add active classes
+            btn.classList.add('active', 'border-royal', 'text-royal');
+            btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+        });
+    });
+</script>
+{% endblock %}

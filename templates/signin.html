@@ -1,0 +1,51 @@
+
+{% extends "base.html" %}
+
+{% block title %}Sign In - BookSwap VIT{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-400 via-royal to-blue-deep dark:from-navy-deep dark:via-navy-medium dark:to-royal flex items-center justify-center py-12">
+    <div class="max-w-md w-full bg-white dark:bg-navy-light rounded-3xl p-10 shadow-2xl border border-sky-100 dark:border-navy-medium">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">Welcome Back</h2>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">Sign in to your BookSwap VIT account</p>
+        </div>
+        
+        <!-- Verified Notice -->
+        <div class="bg-royal/10 border border-royal/20 rounded-lg p-4 mb-6">
+            <p class="text-royal text-sm font-medium text-center">✓ Verified @vitstudent.ac.in email addresses only</p>
+        </div>
+        
+        <form method="POST" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-semibold text-gray-900 dark:text-white mb-3">VIT Email</label>
+                <input type="email" id="email" name="email" required 
+                       class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white"
+                       placeholder="your.name@vitstudent.ac.in">
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-semibold text-gray-900 dark:text-white mb-3">Password</label>
+                <input type="password" id="password" name="password" required 
+                       class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white"
+                       placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="w-full bg-royal text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-deep transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Sign In
+            </button>
+        </form>
+        
+        <div class="mt-8 text-center">
+            <p class="text-gray-600 dark:text-gray-300">
+                Don't have an account? 
+                <a href="/signup" class="text-royal font-semibold hover:underline">Sign up here</a>
+            </p>
+        </div>
+        
+        <p class="text-xs text-gray-600 dark:text-gray-400 text-center mt-8 leading-relaxed">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookSwap VIT{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'sky-light': '#E0F2FE',
+                        'sky-medium': '#7DD3FC',
+                        'blue-royal': '#1E40AF',
+                        'blue-deep': '#1E3A8A',
+                        'navy-deep': '#0F172A',
+                        'navy-medium': '#1E293B',
+                        'navy-light': '#334155',
+                        'royal': '#2563EB',
+                        'crimson': '#DC2626'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-navy-deep text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Navigation -->
+    <nav class="bg-white/90 dark:bg-navy-deep/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-30 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-royal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <a href="/" class="text-xl font-bold bg-gradient-to-r from-royal to-blue-deep bg-clip-text text-transparent">BookSwap VIT</a>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% if session.user_id %}
+                        <a href="/dashboard" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Dashboard</a>
+                        <a href="/browse" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Browse</a>
+                        <a href="/add_book" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Add Book</a>
+                        <span class="text-gray-600 dark:text-gray-400">{{ session.user_name }}</span>
+                        <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">Logout</a>
+                    {% else %}
+                        <a href="/contact" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Contact</a>
+                        <a href="/signin" class="bg-royal text-white px-4 py-2 rounded-lg hover:bg-blue-deep transition-colors">Sign In</a>
+                    {% endif %}
+                    
+                    <!-- Dark Mode Toggle -->
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-navy-light hover:bg-gray-200 dark:hover:bg-navy-medium transition-all duration-300">
+                        <svg id="sun-icon" class="w-5 h-5 text-yellow-500 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg id="moon-icon" class="w-5 h-5 text-gray-700 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="pt-16">
+                {% for category, message in messages %}
+                    <div class="bg-{% if category == 'error' %}red{% else %}green{% endif %}-100 border border-{% if category == 'error' %}red{% else %}green{% endif %}-400 text-{% if category == 'error' %}red{% else %}green{% endif %}-700 px-4 py-3 rounded m-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="{% if not session.user_id %}pt-16{% else %}pt-20{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Dark mode functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        if (currentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>
