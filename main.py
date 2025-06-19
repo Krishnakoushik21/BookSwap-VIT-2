@@ -463,7 +463,7 @@ def swapmates():
     
     conn = get_db_connection()
     
-    # Get accepted chat requests
+    # Get all accepted requests (both where chat is enabled and where it needs to be enabled)
     chat_requests = conn.execute('''
         SELECT br.*, b.title, b.author, 
                CASE 
@@ -479,7 +479,7 @@ def swapmates():
         JOIN users u_owner ON br.owner_id = u_owner.id
         JOIN users u_requester ON br.requester_id = u_requester.id
         WHERE (br.requester_id = ? OR br.owner_id = ?) 
-        AND br.status = 'accepted' AND br.chat_accepted = 1
+        AND br.status = 'accepted'
         ORDER BY br.created_at DESC
     ''', (session['user_id'], session['user_id'], session['user_id'], session['user_id'])).fetchall()
     
