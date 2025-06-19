@@ -23,6 +23,7 @@ def init_db():
         student_id TEXT,
         branch TEXT,
         semester TEXT,
+        gender TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
     
@@ -115,6 +116,7 @@ def signup():
         student_id = request.form['student_id'].strip()
         branch = request.form['branch']
         semester = request.form['semester']
+        gender = request.form.get('gender', '')
         
         if not validate_vit_email(email):
             flash('Please use a valid @vitstudent.ac.in email address', 'error')
@@ -139,8 +141,8 @@ def signup():
         # Create new user
         try:
             conn.execute(
-                'INSERT INTO users (name, email, password_hash, student_id, branch, semester) VALUES (?, ?, ?, ?, ?, ?)',
-                (name, email, hash_password(password), student_id, branch, semester)
+                'INSERT INTO users (name, email, password_hash, student_id, branch, semester, gender) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (name, email, hash_password(password), student_id, branch, semester, gender)
             )
             conn.commit()
             flash('Account created successfully! Please sign in.', 'success')
@@ -205,7 +207,16 @@ def browse_books():
     branch_filter = request.args.get('branch', '')
     book_type_filter = request.args.get('book_type', '')
     
-    # Build query
+    # Get user's own books separately
+    user_books = conn.execute('''
+        SELECT b.*, u.name as owner_name 
+        FROM books b 
+        JOIN users u ON b.user_id = u.id 
+        WHERE b.user_id = ? AND b.is_available = 1
+        ORDER BY b.created_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    # Build query for other users' books
     query = '''
         SELECT b.*, u.name as owner_name 
         FROM books b 
@@ -236,7 +247,7 @@ def browse_books():
     books = conn.execute(query, params).fetchall()
     conn.close()
     
-    return render_template('browse.html', books=books)
+    return render_template('browse.html', books=books, user_books=user_books)
 
 @app.route('/add_book', methods=['GET', 'POST'])
 def add_book():
@@ -310,6 +321,112 @@ def request_book(book_id):
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+@app.route('/accept_request/<int:request_id>')
+def accept_request(request_id):
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Update request status
+    conn.execute(
+        'UPDATE book_requests SET status = ? WHERE id = ? AND owner_id = ?',
+        ('accepted', request_id, session['user_id'])
+    )
+    conn.commit()
+    conn.close()
+    
+    flash('Book request accepted!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/decline_request/<int:request_id>')
+def decline_request(request_id):
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Update request status
+    conn.execute(
+        'UPDATE book_requests SET status = ? WHERE id = ? AND owner_id = ?',
+        ('declined', request_id, session['user_id'])
+    )
+    conn.commit()
+    conn.close()
+    
+    flash('Book request declined.', 'info')
+    return redirect(url_for('dashboard'))
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    if request.method == 'POST':
+        name = request.form['name'].strip()
+        student_id = request.form['student_id'].strip()
+        branch = request.form['branch']
+        semester = request.form['semester']
+        gender = request.form['gender']
+        
+        conn = get_db_connection()
+        conn.execute('''
+            UPDATE users SET name = ?, student_id = ?, branch = ?, semester = ?, gender = ?
+            WHERE id = ?
+        ''', (name, student_id, branch, semester, gender, session['user_id']))
+        conn.commit()
+        conn.close()
+        
+        session['user_name'] = name
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    # Get current user data
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    conn.close()
+    
+    return render_template('edit_profile.html', user=user)
+
+@app.route('/exchange_history')
+def exchange_history():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Get all user's request history
+    sent_requests = conn.execute('''
+        SELECT br.*, b.title, b.author, u.name as owner_name 
+        FROM book_requests br 
+        JOIN books b ON br.book_id = b.id 
+        JOIN users u ON br.owner_id = u.id 
+        WHERE br.requester_id = ? 
+        ORDER BY br.created_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    # Get requests for user's books
+    received_requests = conn.execute('''
+        SELECT br.*, b.title, b.author, u.name as requester_name 
+        FROM book_requests br 
+        JOIN books b ON br.book_id = b.id 
+        JOIN users u ON br.requester_id = u.id 
+        WHERE br.owner_id = ? 
+        ORDER BY br.created_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    # Calculate stats
+    accepted_sent = len([r for r in sent_requests if r['status'] == 'accepted'])
+    accepted_received = len([r for r in received_requests if r['status'] == 'accepted'])
+    total_swapped = accepted_sent + accepted_received
+    
+    conn.close()
+    
+    return render_template('exchange_history.html', 
+                         sent_requests=sent_requests,
+                         received_requests=received_requests,
+                         total_swapped=total_swapped)
 
 @app.route('/contact')
 def contact():
