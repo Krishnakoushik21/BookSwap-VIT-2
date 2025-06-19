@@ -20,12 +20,80 @@
                         'navy-medium': '#1E293B',
                         'navy-light': '#334155',
                         'royal': '#2563EB',
-                        'crimson': '#DC2626'
+                        'crimson': '#DC2626',
+                        'purple-glow': '#8B5CF6',
+                        'yellow-glow': '#F59E0B',
+                        'green-glow': '#10B981'
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'slide-down': 'slideDown 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.8s ease-out',
+                        'scale-in': 'scaleIn 0.6s ease-out'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(37, 99, 235, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(37, 99, 235, 0.8), 0 0 30px rgba(37, 99, 235, 0.6)' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(-100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
                     }
                 }
             }
         }
     </script>
+    <style>
+        .glow-button {
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.6), 0 0 35px rgba(37, 99, 235, 0.4);
+        }
+        .card-glow-purple {
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+        .card-glow-yellow {
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+        }
+        .card-glow-green {
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+        .card-glow-blue {
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+    </style>
 </head>
 <body class="bg-white dark:bg-navy-deep text-gray-900 dark:text-white transition-colors duration-300">
     <!-- Navigation -->
@@ -41,16 +109,19 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-6">
                     {% if session.user_id %}
-                        <a href="/dashboard" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Dashboard</a>
-                        <a href="/browse" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Browse</a>
-                        <a href="/add_book" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Add Book</a>
+                        <a href="/dashboard" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Dashboard</a>
+                        <a href="/browse" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Browse</a>
+                        <a href="/add_book" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Add Book</a>
                         <span class="text-gray-600 dark:text-gray-400">{{ session.user_name }}</span>
-                        <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">Logout</a>
+                        <a href="/logout" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">Logout</a>
                     {% else %}
-                        <a href="/contact" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-colors">Contact</a>
-                        <a href="/signin" class="bg-royal text-white px-4 py-2 rounded-lg hover:bg-blue-deep transition-colors">Sign In</a>
+                        <a href="/#features" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105 font-medium">Features</a>
+                        <a href="/#how-it-works" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105 font-medium">How it Works</a>
+                        <a href="/#reviews" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105 font-medium">Reviews</a>
+                        <a href="/contact" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105 font-medium">Contact</a>
+                        <a href="/signin" class="bg-gradient-to-r from-royal to-blue-deep text-white px-6 py-2 rounded-full hover:from-blue-deep hover:to-royal transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl glow-button">Sign In</a>
                     {% endif %}
                     
                     <!-- Dark Mode Toggle -->

@@ -76,6 +76,10 @@ def validate_vit_email(email):
 def home():
     return render_template('index.html')
 
+@app.route('/loading')
+def loading():
+    return render_template('loading.html')
+
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
