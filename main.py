@@ -53,10 +53,34 @@ def init_db():
         status TEXT DEFAULT 'pending',
         message TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        chat_accepted BOOLEAN DEFAULT 0,
         FOREIGN KEY (requester_id) REFERENCES users (id),
         FOREIGN KEY (book_id) REFERENCES books (id),
         FOREIGN KEY (owner_id) REFERENCES users (id)
     )''')
+    
+    # Chat messages table
+    c.execute('''CREATE TABLE IF NOT EXISTS chat_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_id INTEGER,
+        sender_id INTEGER,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (request_id) REFERENCES book_requests (id),
+        FOREIGN KEY (sender_id) REFERENCES users (id)
+    )''')
+    
+    # Add gender column if it doesn't exist
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN gender TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    # Add chat_accepted column if it doesn't exist
+    try:
+        c.execute('ALTER TABLE book_requests ADD COLUMN chat_accepted BOOLEAN DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass
     
     conn.commit()
     conn.close()
@@ -431,6 +455,124 @@ def exchange_history():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/swapmates')
+def swapmates():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Get accepted chat requests
+    chat_requests = conn.execute('''
+        SELECT br.*, b.title, b.author, 
+               CASE 
+                   WHEN br.requester_id = ? THEN u_owner.name 
+                   ELSE u_requester.name 
+               END as chat_partner_name,
+               CASE 
+                   WHEN br.requester_id = ? THEN br.owner_id 
+                   ELSE br.requester_id 
+               END as chat_partner_id
+        FROM book_requests br 
+        JOIN books b ON br.book_id = b.id 
+        JOIN users u_owner ON br.owner_id = u_owner.id
+        JOIN users u_requester ON br.requester_id = u_requester.id
+        WHERE (br.requester_id = ? OR br.owner_id = ?) 
+        AND br.status = 'accepted' AND br.chat_accepted = 1
+        ORDER BY br.created_at DESC
+    ''', (session['user_id'], session['user_id'], session['user_id'], session['user_id'])).fetchall()
+    
+    conn.close()
+    
+    return render_template('swapmates.html', chat_requests=chat_requests)
+
+@app.route('/accept_chat/<int:request_id>')
+def accept_chat(request_id):
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Update chat acceptance
+    conn.execute(
+        'UPDATE book_requests SET chat_accepted = 1 WHERE id = ? AND (owner_id = ? OR requester_id = ?)',
+        (request_id, session['user_id'], session['user_id'])
+    )
+    conn.commit()
+    conn.close()
+    
+    flash('Chat accepted! You can now message each other in SwapMates.', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/chat/<int:request_id>')
+def chat(request_id):
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+    
+    conn = get_db_connection()
+    
+    # Verify user is part of this chat
+    request_data = conn.execute('''
+        SELECT br.*, b.title, b.author, u_owner.name as owner_name, u_requester.name as requester_name
+        FROM book_requests br 
+        JOIN books b ON br.book_id = b.id 
+        JOIN users u_owner ON br.owner_id = u_owner.id
+        JOIN users u_requester ON br.requester_id = u_requester.id
+        WHERE br.id = ? AND (br.owner_id = ? OR br.requester_id = ?) AND br.chat_accepted = 1
+    ''', (request_id, session['user_id'], session['user_id'])).fetchone()
+    
+    if not request_data:
+        flash('Chat not found or access denied.', 'error')
+        return redirect(url_for('swapmates'))
+    
+    # Get chat messages
+    messages = conn.execute('''
+        SELECT cm.*, u.name as sender_name
+        FROM chat_messages cm
+        JOIN users u ON cm.sender_id = u.id
+        WHERE cm.request_id = ?
+        ORDER BY cm.created_at ASC
+    ''', (request_id,)).fetchall()
+    
+    conn.close()
+    
+    chat_partner_name = request_data['owner_name'] if session['user_id'] == request_data['requester_id'] else request_data['requester_name']
+    
+    return render_template('chat.html', request_data=request_data, messages=messages, chat_partner_name=chat_partner_name)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    request_id = request.form['request_id']
+    message = request.form['message'].strip()
+    
+    if not message:
+        return jsonify({'error': 'Message cannot be empty'}), 400
+    
+    conn = get_db_connection()
+    
+    # Verify user is part of this chat
+    request_data = conn.execute(
+        'SELECT * FROM book_requests WHERE id = ? AND (owner_id = ? OR requester_id = ?) AND chat_accepted = 1',
+        (request_id, session['user_id'], session['user_id'])
+    ).fetchone()
+    
+    if not request_data:
+        conn.close()
+        return jsonify({'error': 'Access denied'}), 403
+    
+    # Insert message
+    conn.execute('''
+        INSERT INTO chat_messages (request_id, sender_id, message)
+        VALUES (?, ?, ?)
+    ''', (request_id, session['user_id'], message))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     init_db()

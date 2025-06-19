@@ -1,0 +1,67 @@
+<!-- User's Own Books -->
+        {% if user_books %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Your Listed Books</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for book in user_books %}
+                        <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100 dark:border-gray-700">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">{{ book.title }}</h3>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm">by {{ book.author }}</p>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium">
+                                    Your Book
+                                </span>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                <p><span class="font-medium">Semester:</span> {{ book.semester }}</p>
+                                <p><span class="font-medium">Branch:</span> {{ book.branch }}</p>
+                                <p><span class="font-medium">Condition:</span> {{ book.condition }}</p>
+                                <p><span class="font-medium">Type:</span> {{ book.book_type }}</p>
+                                {% if book.subjects %}
+                                    <p><span class="font-medium">Subjects:</span> {{ book.subjects }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+<!-- Available Books -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Available Books</h2>
+
+            {% if books %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for book in books %}
+                        <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100 dark:border-gray-700 floating-animation">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">{{ book.title }}</h3>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm">by {{ book.author }}</p>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-medium">
+                                    Available
+                                </span>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                <p><span class="font-medium">Owner:</span> {{ book.owner_name }}</p>
+                                <p><span class="font-medium">Semester:</span> {{ book.semester }}</p>
+                                <p><span class="font-medium">Branch:</span> {{ book.branch }}</p>
+                                <p><span class="font-medium">Condition:</span> {{ book.condition }}</p>
+                                <p><span class="font-medium">Type:</span> {{ book.book_type }}</p>
+                                {% if book.subjects %}
+                                    <p><span class="font-medium">Subjects:</span> {{ book.subjects }}</p>
+                                {% endif %}
+                            </div>
+
+                            <button onclick="openRequestModal({{ book.id }}, '{{ book.title }}', '{{ book.owner_name }}')" 
+                                    class="w-full bg-gradient-to-r from-royal to-blue-deep text-white py-2 px-4 rounded-lg hover:from-blue-deep hover:to-royal transition-all duration-300 transform hover:scale-105 font-medium glass-button">
+                                Request Book
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>

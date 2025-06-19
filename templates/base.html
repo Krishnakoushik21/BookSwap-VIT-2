@@ -89,8 +89,52 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .rubber-bounce {
+            animation: rubberBounce 0.6s ease-out;
+        }
+        .floating-animation {
+            animation: floatUpDown 3s ease-in-out infinite;
+        }
+        @keyframes rubberBounce {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.25); }
+            40% { transform: scale(0.75); }
+            50% { transform: scale(1.15); }
+            65% { transform: scale(0.95); }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
         .smooth-scroll {
             scroll-behavior: smooth;
+        }
+        .chat-bubble {
+            background: rgba(37, 99, 235, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+        .chat-bubble.own {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
     </style>
 </head>
@@ -113,7 +157,7 @@
                         <a href="/dashboard" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Dashboard</a>
                         <a href="/browse" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Browse</a>
                         <a href="/add_book" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">Add Book</a>
-                        <span class="text-gray-600 dark:text-gray-400">{{ session.user_name }}</span>
+                        <a href="/swapmates" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105">SwapMates</a>
                         <a href="/logout" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">Logout</a>
                     {% else %}
                         <a href="/#features" class="text-gray-700 dark:text-gray-300 hover:text-royal transition-all duration-300 hover:scale-105 font-medium">Features</a>
@@ -155,6 +199,56 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Chatbot Widget -->
+    <div id="chatbot-widget" class="fixed bottom-6 right-6 z-50">
+        <div id="chatbot-toggle" class="w-16 h-16 bg-gradient-to-r from-royal to-blue-deep rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 glass-morphism floating-animation">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+        </div>
+        
+        <div id="chatbot-window" class="hidden absolute bottom-20 right-0 w-80 h-96 glass-card rounded-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-royal to-blue-deep p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold">BookSwap Assistant</h3>
+                    <button id="close-chat" class="text-white hover:text-gray-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="chat-messages" class="p-4 h-64 overflow-y-auto space-y-3">
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    👋 Hi! I'm your BookSwap assistant. Ask me anything!
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="space-y-2 mb-3">
+                    <button class="faq-btn w-full text-left p-2 text-xs bg-blue-50 dark:bg-navy-light rounded-lg hover:bg-blue-100 dark:hover:bg-navy-medium transition-colors" data-question="How do I list a book?">
+                        📚 How do I list a book?
+                    </button>
+                    <button class="faq-btn w-full text-left p-2 text-xs bg-blue-50 dark:bg-navy-light rounded-lg hover:bg-blue-100 dark:hover:bg-navy-medium transition-colors" data-question="How does book exchange work?">
+                        🔄 How does book exchange work?
+                    </button>
+                    <button class="faq-btn w-full text-left p-2 text-xs bg-blue-50 dark:bg-navy-light rounded-lg hover:bg-blue-100 dark:hover:bg-navy-medium transition-colors" data-question="What is SwapMates?">
+                        💬 What is SwapMates?
+                    </button>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="text" id="chat-input" placeholder="Type your message..." class="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-navy-light focus:outline-none focus:ring-2 focus:ring-royal">
+                    <button id="send-chat" class="px-4 py-2 bg-royal text-white rounded-lg hover:bg-blue-deep transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-gray-900 dark:bg-navy-deep text-white py-8 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -183,6 +277,88 @@
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
             }
+        });
+
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const closeChat = document.getElementById('close-chat');
+        const chatInput = document.getElementById('chat-input');
+        const sendChat = document.getElementById('send-chat');
+        const chatMessages = document.getElementById('chat-messages');
+
+        const faqAnswers = {
+            "How do I list a book?": "To list a book, go to 'Add Book' in the navigation menu. Fill in the book details like title, author, semester, and condition. Your book will be visible to other students for exchange requests! 📖",
+            "How does book exchange work?": "1️⃣ Browse available books 2️⃣ Send a request to the book owner 3️⃣ Wait for approval 4️⃣ Once accepted, you can chat via SwapMates 5️⃣ Meet in person on campus to exchange! 🔄",
+            "What is SwapMates?": "SwapMates is our chat feature! Once your book request is accepted, you can chat with the book owner to coordinate the exchange. It's safe, secure, and only for VIT students! 💬"
+        };
+
+        chatbotToggle.addEventListener('click', () => {
+            chatbotWindow.classList.toggle('hidden');
+            chatbotToggle.classList.add('rubber-bounce');
+            setTimeout(() => chatbotToggle.classList.remove('rubber-bounce'), 600);
+        });
+
+        closeChat.addEventListener('click', () => {
+            chatbotWindow.classList.add('hidden');
+        });
+
+        function addMessage(message, isBot = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `text-sm p-3 rounded-lg ${isBot ? 'bg-blue-50 dark:bg-navy-light text-gray-700 dark:text-gray-300' : 'bg-royal text-white ml-auto max-w-xs'}`;
+            messageDiv.innerHTML = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleFAQ(question) {
+            addMessage(question, false);
+            setTimeout(() => {
+                addMessage(faqAnswers[question], true);
+            }, 500);
+        }
+
+        document.querySelectorAll('.faq-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const question = btn.dataset.question;
+                handleFAQ(question);
+            });
+        });
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, false);
+            chatInput.value = '';
+
+            // Simple bot responses
+            setTimeout(() => {
+                let botResponse = "Thanks for your message! For specific help, try clicking one of the FAQ buttons above, or contact our support team. 🤖";
+                
+                if (message.toLowerCase().includes('help')) {
+                    botResponse = "I'm here to help! Try clicking on the FAQ buttons above for quick answers, or navigate through the app using the menu. Need more help? Contact support! 🆘";
+                } else if (message.toLowerCase().includes('book')) {
+                    botResponse = "Looking for book help? You can list books via 'Add Book', browse available books, or check your exchange history in the dashboard! 📚";
+                } else if (message.toLowerCase().includes('chat')) {
+                    botResponse = "Want to chat with someone? Once your book request is accepted, you can use SwapMates to message the book owner! 💬";
+                }
+                
+                addMessage(botResponse, true);
+            }, 1000);
+        }
+
+        sendChat.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Add rubber bounce animation to buttons
+        document.querySelectorAll('button, .glow-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.add('rubber-bounce');
+                setTimeout(() => btn.classList.remove('rubber-bounce'), 600);
+            });
         });
     </script>
 </body>
