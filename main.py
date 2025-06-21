@@ -574,6 +574,119 @@ def send_message():
     
     return jsonify({'success': True})
 
+@app.route('/api/check_updates')
+def check_updates():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    last_update = request.args.get('last_update', 0, type=int)
+    
+    conn = get_db_connection()
+    
+    # Check for new requests since last update
+    new_requests = conn.execute('''
+        SELECT COUNT(*) as count FROM book_requests 
+        WHERE owner_id = ? AND created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], last_update / 1000)).fetchone()
+    
+    # Check for request status updates
+    status_updates = conn.execute('''
+        SELECT COUNT(*) as count FROM book_requests 
+        WHERE requester_id = ? AND created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], last_update / 1000)).fetchone()
+    
+    # Check for new chat messages
+    new_messages = conn.execute('''
+        SELECT COUNT(*) as count FROM chat_messages cm
+        JOIN book_requests br ON cm.request_id = br.id
+        WHERE (br.requester_id = ? OR br.owner_id = ?) AND cm.sender_id != ?
+        AND cm.created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], session['user_id'], session['user_id'], last_update / 1000)).fetchone()
+    
+    conn.close()
+    
+    total_notifications = (new_requests['count'] if new_requests else 0) + \
+                         (status_updates['count'] if status_updates else 0) + \
+                         (new_messages['count'] if new_messages else 0)
+    
+    return jsonify({
+        'has_updates': total_notifications > 0,
+        'notification_count': total_notifications,
+        'refresh_needed': total_notifications > 0
+    })
+
+@app.route('/api/notifications')
+def get_notifications():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    conn = get_db_connection()
+    
+    notifications = []
+    
+    # Get incoming book requests
+    incoming_requests = conn.execute('''
+        SELECT br.*, b.title, u.name as requester_name
+        FROM book_requests br
+        JOIN books b ON br.book_id = b.id
+        JOIN users u ON br.requester_id = u.id
+        WHERE br.owner_id = ? AND br.status = 'pending'
+        ORDER BY br.created_at DESC LIMIT 5
+    ''', (session['user_id'],)).fetchall()
+    
+    for req in incoming_requests:
+        notifications.append({
+            'title': 'New Book Request',
+            'message': f'{req["requester_name"]} wants to exchange "{req["title"]}"',
+            'time': req['created_at'],
+            'read': False
+        })
+    
+    # Get request status updates
+    status_updates = conn.execute('''
+        SELECT br.*, b.title, u.name as owner_name
+        FROM book_requests br
+        JOIN books b ON br.book_id = b.id
+        JOIN users u ON br.owner_id = u.id
+        WHERE br.requester_id = ? AND br.status != 'pending'
+        ORDER BY br.created_at DESC LIMIT 5
+    ''', (session['user_id'],)).fetchall()
+    
+    for update in status_updates:
+        status_text = '✅ Accepted' if update['status'] == 'accepted' else '❌ Declined'
+        notifications.append({
+            'title': f'Request {status_text}',
+            'message': f'Your request for "{update["title"]}" was {update["status"]}',
+            'time': update['created_at'],
+            'read': False
+        })
+    
+    # Get new chat messages
+    new_messages = conn.execute('''
+        SELECT cm.*, br.id as request_id, b.title, u.name as sender_name
+        FROM chat_messages cm
+        JOIN book_requests br ON cm.request_id = br.id
+        JOIN books b ON br.book_id = b.id
+        JOIN users u ON cm.sender_id = u.id
+        WHERE (br.requester_id = ? OR br.owner_id = ?) AND cm.sender_id != ?
+        ORDER BY cm.created_at DESC LIMIT 5
+    ''', (session['user_id'], session['user_id'], session['user_id'])).fetchall()
+    
+    for msg in new_messages:
+        notifications.append({
+            'title': 'New Message',
+            'message': f'{msg["sender_name"]} sent you a message about "{msg["title"]}"',
+            'time': msg['created_at'],
+            'read': False
+        })
+    
+    conn.close()
+    
+    # Sort by time
+    notifications.sort(key=lambda x: x['time'], reverse=True)
+    
+    return jsonify({'notifications': notifications[:10]})
+
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
