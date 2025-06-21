@@ -121,6 +121,12 @@
                                 </span>
                             </div>
 
+                            {% if book.image_path %}
+                                <div class="mb-4">
+                                    <img src="/{{ book.image_path }}" alt="{{ book.title }}" class="w-full h-48 object-cover rounded-lg">
+                                </div>
+                            {% endif %}
+
                             <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
                                 <p><span class="font-medium">Owner:</span> {{ book.owner_name }}</p>
                                 <p><span class="font-medium">Semester:</span> {{ book.semester }}</p>
@@ -130,12 +136,29 @@
                                 {% if book.subjects %}
                                     <p><span class="font-medium">Subjects:</span> {{ book.subjects }}</p>
                                 {% endif %}
+                                
+                                {% if book.available_slots_list %}
+                                    <div class="mt-3">
+                                        <p class="font-medium mb-2">Available Slots:</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            {% for slot in book.available_slots_list %}
+                                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs">{{ slot }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
                             </div>
 
-                            <button onclick="openRequestModal({{ book.id }}, '{{ book.title }}', '{{ book.owner_name }}')" 
-                                    class="w-full bg-gradient-to-r from-royal to-blue-deep text-white py-2 px-4 rounded-lg hover:from-blue-deep hover:to-royal transition-all duration-300 transform hover:scale-105 font-medium glass-button">
-                                Request Book
-                            </button>
+                            {% if book.available_slots_list %}
+                                <button onclick="openRequestModal({{ book.id }}, '{{ book.title }}', '{{ book.owner_name }}', {{ book.available_slots_list|tojson }})" 
+                                        class="w-full bg-gradient-to-r from-royal to-blue-deep text-white py-2 px-4 rounded-lg hover:from-blue-deep hover:to-royal transition-all duration-300 transform hover:scale-105 font-medium glass-button">
+                                    Request Book
+                                </button>
+                            {% else %}
+                                <button disabled class="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed font-medium">
+                                    No Slots Available
+                                </button>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
@@ -167,6 +190,13 @@
         
         <form id="request-form" method="POST">
             <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Time Slot</label>
+                <select name="slot" id="slot-select" required class="w-full px-4 py-3 border border-gray-300 dark:border-navy-medium dark:bg-navy-medium rounded-lg focus:ring-2 focus:ring-royal focus:border-royal text-gray-900 dark:text-white">
+                    <option value="">Choose a slot...</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message (Optional)</label>
                 <textarea name="message" rows="4" class="w-full px-4 py-3 border border-gray-300 dark:border-navy-medium dark:bg-navy-medium rounded-lg focus:ring-2 focus:ring-royal focus:border-royal text-gray-900 dark:text-white" placeholder="Add a message for the book owner..."></textarea>
             </div>
@@ -184,10 +214,22 @@
 </div>
 
 <script>
-    function openRequestModal(bookId, bookTitle, ownerName) {
+    function openRequestModal(bookId, bookTitle, ownerName, availableSlots) {
         document.getElementById('modal-title').textContent = `Request: ${bookTitle}`;
         document.getElementById('modal-description').textContent = `Send a request to ${ownerName} for this book.`;
         document.getElementById('request-form').action = `/request_book/${bookId}`;
+        
+        // Populate slot options
+        const slotSelect = document.getElementById('slot-select');
+        slotSelect.innerHTML = '<option value="">Choose a slot...</option>';
+        
+        availableSlots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot;
+            option.textContent = slot;
+            slotSelect.appendChild(option);
+        });
+        
         document.getElementById('request-modal').classList.remove('hidden');
         document.getElementById('request-modal').classList.add('flex');
     }
