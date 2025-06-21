@@ -39,7 +39,6 @@ def init_db():
         subjects TEXT,
         book_type TEXT,
         image_path TEXT,
-        available_slots TEXT,
         is_available BOOLEAN DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
@@ -51,12 +50,10 @@ def init_db():
         requester_id INTEGER,
         book_id INTEGER,
         owner_id INTEGER,
-        requested_slot TEXT,
         status TEXT DEFAULT 'pending',
         message TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         chat_accepted BOOLEAN DEFAULT 0,
-        priority INTEGER DEFAULT 1,
         FOREIGN KEY (requester_id) REFERENCES users (id),
         FOREIGN KEY (book_id) REFERENCES books (id),
         FOREIGN KEY (owner_id) REFERENCES users (id)
@@ -73,29 +70,15 @@ def init_db():
         FOREIGN KEY (sender_id) REFERENCES users (id)
     )''')
     
-    # Add new columns if they don't exist
+    # Add gender column if it doesn't exist
     try:
         c.execute('ALTER TABLE users ADD COLUMN gender TEXT')
     except sqlite3.OperationalError:
         pass
     
+    # Add chat_accepted column if it doesn't exist
     try:
         c.execute('ALTER TABLE book_requests ADD COLUMN chat_accepted BOOLEAN DEFAULT 0')
-    except sqlite3.OperationalError:
-        pass
-    
-    try:
-        c.execute('ALTER TABLE books ADD COLUMN available_slots TEXT')
-    except sqlite3.OperationalError:
-        pass
-    
-    try:
-        c.execute('ALTER TABLE book_requests ADD COLUMN requested_slot TEXT')
-    except sqlite3.OperationalError:
-        pass
-    
-    try:
-        c.execute('ALTER TABLE book_requests ADD COLUMN priority INTEGER DEFAULT 1')
     except sqlite3.OperationalError:
         pass
     
@@ -257,11 +240,9 @@ def browse_books():
         ORDER BY b.created_at DESC
     ''', (session['user_id'],)).fetchall()
     
-    # Build query for other users' books with slot availability
+    # Build query for other users' books
     query = '''
-        SELECT b.*, u.name as owner_name,
-        (SELECT COUNT(*) FROM book_requests br 
-         WHERE br.book_id = b.id AND br.status = 'accepted') as accepted_slots
+        SELECT b.*, u.name as owner_name 
         FROM books b 
         JOIN users u ON b.user_id = u.id 
         WHERE b.is_available = 1 AND b.user_id != ?
@@ -288,29 +269,6 @@ def browse_books():
     query += ' ORDER BY b.created_at DESC'
     
     books = conn.execute(query, params).fetchall()
-    
-    # For each book, get available slots and requests
-    for i, book in enumerate(books):
-        book = dict(book)
-        if book['available_slots']:
-            slots = [slot.strip() for slot in book['available_slots'].split(',')]
-            
-            # Check which slots are available
-            available_slots = []
-            for slot in slots:
-                accepted_for_slot = conn.execute(
-                    'SELECT COUNT(*) as count FROM book_requests WHERE book_id = ? AND requested_slot = ? AND status = "accepted"',
-                    (book['id'], slot)
-                ).fetchone()
-                
-                if accepted_for_slot['count'] == 0:
-                    available_slots.append(slot)
-            
-            book['available_slots_list'] = available_slots
-        else:
-            book['available_slots_list'] = []
-        
-        books[i] = book
     conn.close()
     
     return render_template('browse.html', books=books, user_books=user_books)
@@ -328,26 +286,12 @@ def add_book():
         condition = request.form['condition']
         subjects = request.form['subjects'].strip()
         book_type = request.form['book_type']
-        available_slots = request.form['available_slots'].strip()
-        
-        # Handle image upload
-        image_path = None
-        if 'book_image' in request.files:
-            file = request.files['book_image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                # Create uploads directory if it doesn't exist
-                os.makedirs('static/uploads', exist_ok=True)
-                
-                # Generate unique filename
-                filename = f"{session['user_id']}_{int(datetime.now().timestamp())}_{file.filename}"
-                image_path = os.path.join('static/uploads', filename)
-                file.save(image_path)
         
         conn = get_db_connection()
         conn.execute('''
-            INSERT INTO books (user_id, title, author, semester, branch, condition, subjects, book_type, available_slots, image_path)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (session['user_id'], title, author, semester, branch, condition, subjects, book_type, available_slots, image_path))
+            INSERT INTO books (user_id, title, author, semester, branch, condition, subjects, book_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (session['user_id'], title, author, semester, branch, condition, subjects, book_type))
         conn.commit()
         conn.close()
         
@@ -356,18 +300,12 @@ def add_book():
     
     return render_template('add_book.html')
 
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route('/request_book/<int:book_id>', methods=['POST'])
 def request_book(book_id):
     if 'user_id' not in session:
         return redirect(url_for('signin'))
     
     message = request.form.get('message', '').strip()
-    requested_slot = request.form.get('slot', '').strip()
     
     conn = get_db_connection()
     
@@ -382,43 +320,25 @@ def request_book(book_id):
         flash('You cannot request your own book', 'error')
         return redirect(url_for('browse_books'))
     
-    # Check if request already exists for this slot
+    # Check if request already exists
     existing_request = conn.execute(
-        'SELECT id FROM book_requests WHERE requester_id = ? AND book_id = ? AND requested_slot = ?',
-        (session['user_id'], book_id, requested_slot)
+        'SELECT id FROM book_requests WHERE requester_id = ? AND book_id = ?',
+        (session['user_id'], book_id)
     ).fetchone()
     
     if existing_request:
-        flash('You have already requested this book for this slot', 'error')
+        flash('You have already requested this book', 'error')
         return redirect(url_for('browse_books'))
-    
-    # Check if there's already an accepted request for this slot
-    accepted_request = conn.execute(
-        'SELECT id FROM book_requests WHERE book_id = ? AND requested_slot = ? AND status = "accepted"',
-        (book_id, requested_slot)
-    ).fetchone()
-    
-    # Determine priority (1 = first in line, higher numbers = waiting list)
-    existing_requests = conn.execute(
-        'SELECT COUNT(*) as count FROM book_requests WHERE book_id = ? AND requested_slot = ? AND status = "pending"',
-        (book_id, requested_slot)
-    ).fetchone()
-    
-    priority = existing_requests['count'] + 1
-    status = 'pending' if not accepted_request else 'waiting'
     
     # Create request
     conn.execute('''
-        INSERT INTO book_requests (requester_id, book_id, owner_id, requested_slot, message, status, priority)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (session['user_id'], book_id, book['user_id'], requested_slot, message, status, priority))
+        INSERT INTO book_requests (requester_id, book_id, owner_id, message)
+        VALUES (?, ?, ?, ?)
+    ''', (session['user_id'], book_id, book['user_id'], message))
     conn.commit()
     conn.close()
     
-    if status == 'waiting':
-        flash(f'You have been added to the waiting list for slot {requested_slot}!', 'info')
-    else:
-        flash('Book request sent successfully!', 'success')
+    flash('Book request sent successfully!', 'success')
     return redirect(url_for('browse_books'))
 
 @app.route('/logout')
@@ -433,42 +353,11 @@ def accept_request(request_id):
     
     conn = get_db_connection()
     
-    # Get request details
-    request_data = conn.execute(
-        'SELECT * FROM book_requests WHERE id = ? AND owner_id = ?',
-        (request_id, session['user_id'])
-    ).fetchone()
-    
-    if not request_data:
-        flash('Request not found', 'error')
-        return redirect(url_for('dashboard'))
-    
-    # Update this request to accepted
+    # Update request status
     conn.execute(
-        'UPDATE book_requests SET status = ? WHERE id = ?',
-        ('accepted', request_id)
+        'UPDATE book_requests SET status = ? WHERE id = ? AND owner_id = ?',
+        ('accepted', request_id, session['user_id'])
     )
-    
-    # Decline all other pending requests for the same book and slot
-    conn.execute('''
-        UPDATE book_requests 
-        SET status = 'declined' 
-        WHERE book_id = ? AND requested_slot = ? AND id != ? AND status = 'pending'
-    ''', (request_data['book_id'], request_data['requested_slot'], request_id))
-    
-    # Promote waiting list requests to pending for this slot
-    waiting_requests = conn.execute('''
-        SELECT id FROM book_requests 
-        WHERE book_id = ? AND requested_slot = ? AND status = 'waiting'
-        ORDER BY priority ASC
-    ''', (request_data['book_id'], request_data['requested_slot'])).fetchall()
-    
-    for waiting_req in waiting_requests:
-        conn.execute(
-            'UPDATE book_requests SET status = "pending" WHERE id = ?',
-            (waiting_req['id'],)
-        )
-    
     conn.commit()
     conn.close()
     
@@ -690,34 +579,35 @@ def check_updates():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
+    last_update = request.args.get('last_update', 0, type=int)
+    
     conn = get_db_connection()
     
-    # Count pending incoming requests
-    pending_requests = conn.execute('''
+    # Check for new requests since last update
+    new_requests = conn.execute('''
         SELECT COUNT(*) as count FROM book_requests 
-        WHERE owner_id = ? AND status = 'pending'
-    ''', (session['user_id'],)).fetchone()
+        WHERE owner_id = ? AND created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], last_update / 1000)).fetchone()
     
-    # Count unread messages
-    unread_messages = conn.execute('''
+    # Check for request status updates
+    status_updates = conn.execute('''
+        SELECT COUNT(*) as count FROM book_requests 
+        WHERE requester_id = ? AND created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], last_update / 1000)).fetchone()
+    
+    # Check for new chat messages
+    new_messages = conn.execute('''
         SELECT COUNT(*) as count FROM chat_messages cm
         JOIN book_requests br ON cm.request_id = br.id
         WHERE (br.requester_id = ? OR br.owner_id = ?) AND cm.sender_id != ?
-        AND cm.created_at > datetime('now', '-1 hour')
-    ''', (session['user_id'], session['user_id'], session['user_id'])).fetchone()
-    
-    # Count recent status updates
-    status_updates = conn.execute('''
-        SELECT COUNT(*) as count FROM book_requests 
-        WHERE requester_id = ? AND status IN ('accepted', 'declined') 
-        AND created_at > datetime('now', '-1 hour')
-    ''', (session['user_id'],)).fetchone()
+        AND cm.created_at > datetime(?, 'unixepoch', 'localtime')
+    ''', (session['user_id'], session['user_id'], session['user_id'], last_update / 1000)).fetchone()
     
     conn.close()
     
-    total_notifications = (pending_requests['count'] if pending_requests else 0) + \
-                         (unread_messages['count'] if unread_messages else 0) + \
-                         (status_updates['count'] if status_updates else 0)
+    total_notifications = (new_requests['count'] if new_requests else 0) + \
+                         (status_updates['count'] if status_updates else 0) + \
+                         (new_messages['count'] if new_messages else 0)
     
     return jsonify({
         'has_updates': total_notifications > 0,

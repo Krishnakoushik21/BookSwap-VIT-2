@@ -156,7 +156,7 @@
                         <span>List New Book/Note</span>
                     </a>
                 </div>
-
+                
                 {% if user_books %}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {% for book in user_books %}
@@ -231,7 +231,7 @@
                     </svg>
                     <span>My Book Requests</span>
                 </h2>
-
+                
                 {% if requests %}
                     <div class="space-y-6">
                         {% for request in requests %}
@@ -240,16 +240,10 @@
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3 mb-3">
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ request.title }}</h3>
-                                            <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% elif request.status == 'waiting' %}orange{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% elif request.status == 'waiting' %}orange{% else %}red{% endif %}-800 text-xs px-3 py-1 rounded-full font-semibold">
-                                                {% if request.status == 'pending' %}⏳ Pending{% elif request.status == 'accepted' %}✅ Accepted{% elif request.status == 'waiting' %}⏰ Waiting List{% else %}❌ Declined{% endif %}
+                                            <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-800 text-xs px-3 py-1 rounded-full font-semibold">
+                                                {% if request.status == 'pending' %}⏳ Pending{% elif request.status == 'accepted' %}✅ Accepted{% else %}❌ Declined{% endif %}
                                             </span>
                                         </div>
-                                        {% if request.requested_slot %}
-                                            <div class="mb-2">
-                                                <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Slot: </span>
-                                                <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">{{ request.requested_slot }}</span>
-                                            </div>
-                                        {% endif %}
                                         <p class="text-gray-600 dark:text-gray-300 mb-2">by {{ request.author }}</p>
                                         <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +290,7 @@
                     </svg>
                     <span>Incoming Book Requests</span>
                 </h2>
-
+                
                 {% if incoming_requests %}
                     <div class="space-y-6">
                         {% for request in incoming_requests %}
@@ -305,16 +299,10 @@
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3 mb-3">
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ request.title }}</h3>
-                                            <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% elif request.status == 'waiting' %}orange{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% elif request.status == 'waiting' %}orange{% else %}red{% endif %}-800 text-xs px-3 py-1 rounded-full font-semibold">
-                                                {% if request.status == 'pending' %}⏳ Pending{% elif request.status == 'accepted' %}✅ Accepted{% elif request.status == 'waiting' %}⏰ Waiting List{% else %}❌ Declined{% endif %}
+                                            <span class="inline-block bg-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-100 text-{% if request.status == 'pending' %}yellow{% elif request.status == 'accepted' %}green{% else %}red{% endif %}-800 text-xs px-3 py-1 rounded-full font-semibold">
+                                                {% if request.status == 'pending' %}⏳ Pending{% elif request.status == 'accepted' %}✅ Accepted{% else %}❌ Declined{% endif %}
                                             </span>
                                         </div>
-                                        {% if request.requested_slot %}
-                                            <div class="mb-2">
-                                                <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Requested Slot: </span>
-                                                <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">{{ request.requested_slot }}</span>
-                                            </div>
-                                        {% endif %}
                                         <p class="text-gray-600 dark:text-gray-300 mb-2">by {{ request.author }}</p>
                                         <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +376,7 @@
             <span>Share Your Feedback</span>
         </h3>
         <p class="text-gray-600 dark:text-gray-300 mb-6">Help us improve BookSwap VIT with your valuable feedback!</p>
-
+        
         <form class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
@@ -400,12 +388,12 @@
                     <button type="button" class="star-rating text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="5">★</button>
                 </div>
             </div>
-
+            
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Comments</label>
                 <textarea rows="4" class="w-full px-4 py-3 border border-gray-300 dark:border-navy-medium dark:bg-navy-medium rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 dark:text-white" placeholder="Share your thoughts..."></textarea>
             </div>
-
+            
             <div class="flex space-x-4">
                 <button type="submit" class="flex-1 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-semibold">
                     Submit Feedback
@@ -423,21 +411,21 @@
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabName = btn.dataset.tab;
-
+            
             // Remove active classes
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('active', 'border-royal', 'text-royal');
                 b.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
             });
-
+            
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
             });
-
+            
             // Add active classes
             btn.classList.add('active', 'border-royal', 'text-royal');
             btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-
+            
             document.getElementById(tabName + '-tab').classList.remove('hidden');
         });
     });
@@ -447,7 +435,7 @@
         document.getElementById('feedback-modal').classList.remove('hidden');
         document.getElementById('feedback-modal').classList.add('flex');
     }
-
+    
     function closeFeedbackModal() {
         document.getElementById('feedback-modal').classList.add('hidden');
         document.getElementById('feedback-modal').classList.remove('flex');
