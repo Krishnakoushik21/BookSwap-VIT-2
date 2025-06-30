@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - BookSwap VIT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'bounce-delay-1': 'bounce 1s infinite 0.1s',
+                        'bounce-delay-2': 'bounce 1s infinite 0.2s',
+                        'bounce-delay-3': 'bounce 1s infinite 0.3s',
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        'pulse-glow': {
+                            '0%, 100%': { 
+                                boxShadow: '0 0 20px rgba(37, 99, 235, 0.4)' 
+                            },
+                            '50%': { 
+                                boxShadow: '0 0 40px rgba(37, 99, 235, 0.8), 0 0 60px rgba(37, 99, 235, 0.6)' 
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <!-- Animated Icons -->
+        <div class="flex justify-center space-x-8 mb-12">
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce-delay-1">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce-delay-2">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce-delay-3">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Loading Text -->
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-8 animate-pulse-glow">
+            Loading BookSwap VIT...
+        </h1>
+
+        <!-- Progress Bar -->
+        <div class="w-80 bg-white/20 rounded-full h-3 mb-8 mx-auto overflow-hidden">
+            <div class="bg-gradient-to-r from-white to-blue-200 h-full rounded-full animate-pulse" style="width: 0%; animation: progress 3s ease-out forwards;"></div>
+        </div>
+
+        <!-- Spinning Logo -->
+        <div class="flex justify-center">
+            <div class="w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin-slow"></div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+    </style>
+
+    <script>
+        // Simulate loading and redirect
+        setTimeout(() => {
+            window.location.href = '/signin';
+        }, 2700);
+    </script>
+</body>
+</html>

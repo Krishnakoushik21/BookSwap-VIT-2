@@ -1,0 +1,155 @@
+
+{% extends "base.html" %}
+
+{% block title %}List Your Book - BookSwap VIT{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-sky-50 to-white dark:from-navy-deep dark:to-navy-medium py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">List Your Book for Exchange</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300">Fill in the details below to make your book available to fellow VIT students.</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white dark:bg-navy-light rounded-2xl p-8 shadow-lg">
+            <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                <!-- Book Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="title" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Book Title</label>
+                        <input type="text" id="title" name="title" required 
+                               class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white"
+                               placeholder="e.g., Introduction to Algorithms">
+                    </div>
+                    
+                    <div>
+                        <label for="author" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Author</label>
+                        <input type="text" id="author" name="author" required 
+                               class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white"
+                               placeholder="e.g., Thomas H. Cormen">
+                    </div>
+                </div>
+
+                <!-- Academic Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <label for="semester" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Semester</label>
+                        <select id="semester" name="semester" required 
+                                class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white">
+                            <option value="">Select Semester</option>
+                            <option value="1">1st Semester</option>
+                            <option value="2">2nd Semester</option>
+                            <option value="3">3rd Semester</option>
+                            <option value="4">4th Semester</option>
+                            <option value="5">5th Semester</option>
+                            <option value="6">6th Semester</option>
+                            <option value="7">7th Semester</option>
+                            <option value="8">8th Semester</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="branch" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Branch</label>
+                        <select id="branch" name="branch" required 
+                                class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white">
+                            <option value="">Select Branch</option>
+                            <option value="CSE">Computer Science</option>
+                            <option value="ECE">Electronics</option>
+                            <option value="MECH">Mechanical</option>
+                            <option value="CIVIL">Civil</option>
+                            <option value="EEE">Electrical</option>
+                            <option value="IT">Information Technology</option>
+                            <option value="CHEM">Chemical</option>
+                            <option value="BIO">Biotechnology</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="condition" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Condition</label>
+                        <select id="condition" name="condition" required 
+                                class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white">
+                            <option value="">Select Condition</option>
+                            <option value="Excellent">Excellent</option>
+                            <option value="Very Good">Very Good</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Book Type -->
+                <div>
+                    <label for="book_type" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">Book Type</label>
+                    <select id="book_type" name="book_type" required 
+                            class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white">
+                        <option value="">Select Type</option>
+                        <option value="Physical Book">Physical Book</option>
+                        <option value="E-Book">E-Book</option>
+                        <option value="Notes">Notes</option>
+                    </select>
+                </div>
+
+                <!-- Subjects/Keywords -->
+                <div>
+                    <label for="subjects" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                        Subjects/Keywords 
+                        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(Comma-separated, e.g., DSA, Algorithms, Programming)</span>
+                    </label>
+                    <textarea id="subjects" name="subjects" rows="3" 
+                              class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white"
+                              placeholder="e.g., Data Structures, Algorithms, Python"></textarea>
+                </div>
+
+                <!-- Book Image Upload -->
+                <div>
+                    <label for="book_image" class="block text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center space-x-2">
+                        <svg class="w-6 h-6 text-royal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Book Image</span>
+                        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(Optional - JPG, PNG, max 5MB)</span>
+                    </label>
+                    <div class="relative">
+                        <input type="file" id="book_image" name="book_image" accept="image/*" 
+                               class="w-full px-5 py-4 border-2 border-gray-200 dark:border-navy-medium dark:bg-navy-medium rounded-xl focus:ring-2 focus:ring-royal focus:border-royal transition-all duration-300 text-lg text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-royal file:text-white hover:file:bg-blue-deep">
+                        <div id="image_preview" class="mt-4 hidden">
+                            <img id="preview_img" src="" alt="Book preview" class="w-32 h-40 object-cover rounded-lg shadow-md">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-center">
+                    <button type="submit" class="bg-royal text-white px-12 py-4 rounded-xl text-xl font-bold hover:bg-blue-deep transform hover:scale-105 transition-all duration-300 shadow-lg">
+                        List My Book
+                    </button>
+                </div>
+
+                <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Ensure all details are accurate. Your listing will be visible to other VIT students.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Image preview functionality
+    document.getElementById('book_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview_img').src = e.target.result;
+                document.getElementById('image_preview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('image_preview').classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}
