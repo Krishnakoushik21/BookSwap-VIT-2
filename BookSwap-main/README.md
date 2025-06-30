@@ -46,11 +46,11 @@ BookSwap is a web platform that allows VIT students to exchange books with each 
 ✅ 4. Create a .env file
 In the project root, create a .env file with your environment variables, such as:
 
-SUPABASE_URL=https://xyzcompany.supabase.co
-SUPABASE_KEY=your_anon_or_service_key
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-SECRET_KEY=your_flask_secret_key
+SUPABASE_URL
+SUPABASE_KEY
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+SECRET_KEY
 
 ✅ 5. Run the Flask server
   python main.py
