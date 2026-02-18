@@ -1,4 +1,5 @@
-
+## GONNA SHIFT THE WHOLE TECHSTACK TO SPRING (CURRENTLY WORKING ON IT)
+## ALSO IMPLEMNTING MICROSERVICES
 # 📚 BookSwap-VIT
 
 BookSwap is a web platform that allows VIT students to exchange books with each other through a simple, secure, and chat-based interface.
